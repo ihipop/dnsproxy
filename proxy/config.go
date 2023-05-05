@@ -173,6 +173,16 @@ type Config struct {
 	// PreferIPv6 tells the proxy to prefer IPv6 addresses when bootstrapping
 	// upstreams that use hostnames.
 	PreferIPv6 bool
+
+	// Issue: https://github.com/IrineSistiana/mosdns/pull/657
+	// https://github.com/AdguardTeam/AdGuardHome/issues/1861#issuecomment-1500404059
+	// When a TPROXY is processing a UDP connection,
+	// for example: if the Dest Addr is 8.8.8.8:53,
+	// the TPROXY program must bind to 8.8.8.8:53 on TPROXY host os
+	// and send the UDP packet back to the Client to make sure the Src Addr and Port is 8.8.8.8:53 ,
+	// IF, when mosdns has bind :53 on this host os without SO_REUSEADDR,
+	// the behavior of the TPROXY program will fail with EADDRINUSE (Address already in use)
+	ReuseAddr bool `yaml:"reuse_addr"` // used by udp on unix alike systems.
 }
 
 // validateConfig verifies that the supplied configuration is valid and returns an error if it's not

@@ -1,13 +1,13 @@
 package proxy
 
 import (
+	"context"
 	"fmt"
-	"net"
-
 	"github.com/AdguardTeam/dnsproxy/proxyutil"
 	"github.com/AdguardTeam/golibs/errors"
 	"github.com/AdguardTeam/golibs/log"
 	"github.com/miekg/dns"
+	"net"
 )
 
 func (p *Proxy) createUDPListeners() error {
@@ -25,11 +25,12 @@ func (p *Proxy) createUDPListeners() error {
 // udpCreate - create a UDP listening socket
 func (p *Proxy) udpCreate(udpAddr *net.UDPAddr) (*net.UDPConn, error) {
 	log.Info("Creating the UDP server socket")
-	udpListen, err := net.ListenUDP("udp", udpAddr)
+	// Create Listener Config
+	packetConn, err := ListenConfig(p.Config).ListenPacket(context.Background(), "udp", udpAddr.String())
 	if err != nil {
 		return nil, fmt.Errorf("listening to udp socket: %w", err)
 	}
-
+	udpListen := packetConn.(*net.UDPConn)
 	if p.Config.UDPBufferSize > 0 {
 		err = udpListen.SetReadBuffer(p.Config.UDPBufferSize)
 		if err != nil {
